@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buscaminas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; width: 100%; overflow-x: hidden; }
+    body { font-family: 'Barlow', sans-serif; color: #fff; background: #0a0700; position: relative; }
+
+    /* ── Fondo animado ── */
+    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .bg-layer::before {
+      content: ""; position: absolute; inset: -145%; rotate: -45deg; background: #0a0700;
+      background-image:
+        radial-gradient(4px 100px at 0px 235px,rgb(255,140,17),#0000),
+        radial-gradient(4px 100px at 300px 235px,rgb(255,119,0),#884e2800),
+        radial-gradient(1.5px 1.5px at 150px 117.5px,rgb(255,144,9) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 252px,rgb(156,14,137),#0000),
+        radial-gradient(4px 100px at 300px 252px,rgb(23,41,206),#0000),
+        radial-gradient(1.5px 1.5px at 150px 126px,rgb(247,102,18) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 150px,rgb(249,121,16),#0000),
+        radial-gradient(4px 100px at 300px 150px,rgb(255,128,18),#0000),
+        radial-gradient(1.5px 1.5px at 150px 75px,rgb(255,116,10) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 253px,rgb(249,137,17),#0000),
+        radial-gradient(4px 100px at 300px 253px,rgb(248,107,14),#0000),
+        radial-gradient(1.5px 1.5px at 150px 126.5px,rgb(252,129,14) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 204px,rgb(234,115,18),#0000),
+        radial-gradient(4px 100px at 300px 204px,rgb(255,139,6),#0000),
+        radial-gradient(1.5px 1.5px at 150px 102px,rgb(255,128,9) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 134px,rgb(249,133,9),#0000),
+        radial-gradient(4px 100px at 300px 134px,rgb(251,125,15),#0000),
+        radial-gradient(1.5px 1.5px at 150px 67px,rgb(255,146,13) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 179px,rgb(249,137,17),#0000),
+        radial-gradient(4px 100px at 300px 179px,rgb(253,122,6),#0000),
+        radial-gradient(1.5px 1.5px at 150px 89.5px,rgb(234,132,7) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 299px,rgb(255,115,0),#0000),
+        radial-gradient(4px 100px at 300px 299px,rgb(255,136,0),#0000),
+        radial-gradient(1.5px 1.5px at 150px 149.5px,rgb(255,123,0) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 215px,rgb(255,145,0),#0000),
+        radial-gradient(4px 100px at 300px 215px,rgb(255,132,0),#0000),
+        radial-gradient(1.5px 1.5px at 150px 107.5px,rgb(255,136,0) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 281px,rgb(255,170,0),#0000),
+        radial-gradient(4px 100px at 300px 281px,rgb(255,115,0),#0000),
+        radial-gradient(1.5px 1.5px at 150px 140.5px,rgb(255,119,0) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 158px,rgb(255,123,0),#0000),
+        radial-gradient(4px 100px at 300px 158px,rgb(255,132,0),#0000),
+        radial-gradient(1.5px 1.5px at 150px 79px,rgb(255,149,0) 100%,#0000 150%),
+        radial-gradient(4px 100px at 0px 210px,rgb(255,123,0),#0000),
+        radial-gradient(4px 100px at 300px 210px,rgb(255,162,0),#0000),
+        radial-gradient(1.5px 1.5px at 150px 105px,rgb(255,136,0) 100%,#0000 150%);
+      background-size:
+        300px 235px,300px 235px,300px 235px,300px 252px,300px 252px,300px 252px,
+        300px 150px,300px 150px,300px 150px,300px 253px,300px 253px,300px 253px,
+        300px 204px,300px 204px,300px 204px,300px 134px,300px 134px,300px 134px,
+        300px 179px,300px 179px,300px 179px,300px 299px,300px 299px,300px 299px,
+        300px 215px,300px 215px,300px 215px,300px 281px,300px 281px,300px 281px,
+        300px 158px,300px 158px,300px 158px,300px 210px,300px 210px,300px 210px;
+      animation: streaks 150s linear infinite;
+    }
+    @keyframes streaks {
+      0%  { background-position: 0px 220px,3px 220px,151.5px 337.5px,25px 24px,28px 24px,176.5px 150px,50px 16px,53px 16px,201.5px 91px,75px 224px,78px 224px,226.5px 350.5px,100px 19px,103px 19px,251.5px 121px,125px 120px,128px 120px,276.5px 187px,150px 31px,153px 31px,301.5px 120.5px,175px 235px,178px 235px,326.5px 384.5px,200px 121px,203px 121px,351.5px 228.5px,225px 224px,228px 224px,376.5px 364.5px,250px 26px,253px 26px,401.5px 105px,275px 75px,278px 75px,426.5px 180px; }
+      to  { background-position: 0px 6800px,3px 6800px,151.5px 6917.5px,25px 13632px,28px 13632px,176.5px 13758px,50px 5416px,53px 5416px,201.5px 5491px,75px 17175px,78px 17175px,226.5px 17301.5px,100px 5119px,103px 5119px,251.5px 5221px,125px 8428px,128px 8428px,276.5px 8495px,150px 9876px,153px 9876px,301.5px 9965.5px,175px 13391px,178px 13391px,326.5px 13540.5px,200px 14741px,203px 14741px,351.5px 14848.5px,225px 18770px,228px 18770px,376.5px 18910.5px,250px 5082px,253px 5082px,401.5px 5161px,275px 6375px,278px 6375px,426.5px 6480px; }
+    }
+
+    /* ── Layout ── */
+    .game { position: relative; z-index: 1; max-width: 1260px; margin: 0 auto; padding: 2rem 1.5rem 3rem; display: flex; flex-direction: column; gap: 2rem; }
+
+    /* ── Header ── */
+    .header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,180,0,0.18); gap: 1rem; flex-wrap: wrap; }
+    .header-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem,5vw,3.2rem); letter-spacing: 0.08em; background: linear-gradient(135deg,#ffdd60 0%,#ff8800 60%,#ff4400 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+    .header-sub { font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,200,80,0.55); margin-top: 4px; }
+    .header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+
+    .btn { padding: 0.7rem 1.4rem; border: 1.5px solid rgba(255,180,0,0.55); border-radius: 999px; background: rgba(255,160,0,0.1); color: #ffcc44; font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; white-space: nowrap; }
+    .btn:hover { background: rgba(255,160,0,0.22); border-color: rgba(255,200,50,0.9); transform: translateY(-1px); }
+    .btn:active { transform: scale(0.97); }
+    .btn.dv { border-color: rgba(100,150,255,0.5); color: #99bbff; background: rgba(60,80,200,0.12); }
+    .btn.dv:hover { background: rgba(60,80,200,0.25); border-color: rgba(140,180,255,0.9); }
+
+    /* ── Score bar ── */
+    .score-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .score-pill { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; font-size: 0.8rem; color: rgba(255,220,120,0.85); font-weight: 600; letter-spacing: 0.06em; }
+    .score-pill .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-yo     { background: #ffcc00; box-shadow: 0 0 6px #ffcc00; }
+    .dot-empty  { background: #cc2222; box-shadow: 0 0 6px #cc2222; }
+    .dot-vader  { background: #5577ff; box-shadow: 0 0 6px #5577ff; }
+    .dot-hidden { background: rgba(255,255,255,0.25); }
+
+    /* ── Config panel ── */
+    .config-panel { background: rgba(10,10,30,0.75); border: 1px solid rgba(100,150,255,0.25); border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+    .config-panel h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 0.12em; color: #99bbff; }
+    .config-section { display: flex; flex-direction: column; gap: 0.5rem; }
+    .config-section label { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(180,200,255,0.6); font-weight: 700; }
+    .config-section p { font-size: 0.78rem; color: rgba(180,200,255,0.45); }
+    .photo-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; }
+    .photo-slot { position: relative; aspect-ratio: 1; border: 1.5px dashed rgba(100,150,255,0.35); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer; background: rgba(255,255,255,0.03); transition: border-color 0.2s, background 0.2s; overflow: hidden; }
+    .photo-slot:hover { border-color: rgba(100,150,255,0.7); background: rgba(100,150,255,0.07); }
+    .photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+    .photo-slot .slot-label { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(180,200,255,0.5); font-weight: 700; position: relative; z-index: 1; }
+    .photo-slot .slot-plus { font-size: 1.6rem; color: rgba(100,150,255,0.45); line-height: 1; position: relative; z-index: 1; }
+    .photo-slot.has-image .slot-label { color: rgba(255,255,255,0.8); text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+    .vader-slot { border-color: rgba(80,100,220,0.5); background: rgba(40,50,160,0.1); }
+    .vader-slot:hover { border-color: rgba(120,150,255,0.9); background: rgba(40,50,160,0.2); }
+    .config-actions { display: flex; justify-content: flex-end; }
+
+    /* ── Groups ── */
+    .groups { display: flex; flex-direction: column; gap: 1.75rem; }
+    .group { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 1.25rem 1.25rem 1.5rem; backdrop-filter: blur(2px); }
+    .group-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1rem; }
+    .group-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.12em; color: #ffcc44; }
+    .group-progress { font-size: 0.72rem; color: rgba(255,200,80,0.45); letter-spacing: 0.08em; font-weight: 600; }
+
+    /* ── Board ── */
+    .board { display: grid; grid-template-columns: repeat(10, minmax(0,1fr)); gap: 0.6rem; }
+
+    /* ── Card ── */
+    .card { aspect-ratio: 1; border: none; background: none; cursor: pointer; perspective: 700px; padding: 0; }
+    .card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1); border-radius: 14px; }
+    .card.flipped .card-inner { transform: rotateY(180deg); }
+    .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .card-front { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13); color: rgba(255,255,255,0.55); font-family: 'Bebas Neue', sans-serif; font-size: clamp(0.9rem,2.5vw,1.5rem); letter-spacing: 0.05em; transition: background 0.2s, border-color 0.2s; }
+    .card:not(.flipped):hover .card-front { background: rgba(255,180,0,0.13); border-color: rgba(255,180,0,0.35); color: #ffdd88; }
+    .card-back { transform: rotateY(180deg); }
+    .card-back.type-empty  { background: linear-gradient(160deg,#8b1a1a 0%,#5a0a0a 100%); border: 1px solid rgba(200,60,60,0.4); }
+    .card-back.type-yo     { border: 1px solid rgba(255,210,80,0.5); }
+    .card-back.type-vader  { background: linear-gradient(160deg,#1a1a4a 0%,#0a0a2a 100%); border: 1px solid rgba(80,120,255,0.5); }
+
+    .card-back img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; display: block; }
+    .card-back .empty-icon { font-size: clamp(0.9rem,2vw,1.3rem); color: rgba(255,120,120,0.7); }
+    .card-back .vader-label { font-family: 'Bebas Neue', sans-serif; font-size: clamp(0.6rem,1.5vw,0.9rem); letter-spacing: 0.15em; color: #aabbff; text-align: center; padding: 0.2rem; }
+
+    /* ── Vader reveal overlay ── */
+    .vader-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,10,0.88); align-items: center; justify-content: center; flex-direction: column; gap: 1.5rem; }
+    .vader-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .vader-overlay img { max-width: min(400px, 80vw); max-height: 60vh; object-fit: contain; border-radius: 16px; border: 2px solid rgba(80,120,255,0.5); box-shadow: 0 0 60px rgba(60,80,255,0.4); }
+    .vader-overlay .vader-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.5rem,4vw,2.5rem); letter-spacing: 0.15em; color: #aabbff; text-shadow: 0 0 30px rgba(100,150,255,0.8); text-align: center; }
+    .vader-overlay .vader-text span { color: #fff; }
+    .vader-overlay .btn-close { margin-top: 0.5rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) { .game { padding: 1.5rem 0.75rem 2.5rem; } .board { gap: 0.4rem; } }
+    @media (max-width: 480px) { .game { padding: 1rem 0.5rem 2rem; } .board { gap: 0.3rem; } .group { padding: 1rem 0.75rem 1.25rem; } }
+  </style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+
+<!-- Vader reveal overlay -->
+<div class="vader-overlay" id="vader-overlay">
+  <div class="vader-text">¡<span>DARTH VADER</span> TE HA ENCONTRADO!</div>
+  <img id="vader-overlay-img" src="" alt="Darth Vader" />
+  <button class="btn btn-close" id="vader-close">Continuar →</button>
+</div>
+
+<main class="game">
+
+  <header class="header">
+    <div>
+      <div class="header-title">Buscaminas</div>
+      <div class="header-sub">Encuentra las cartas premiadas</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn dv" id="btn-config">⚙ Configurar fotos</button>
+      <button class="btn" id="reset">↺ Reiniciar</button>
+    </div>
+  </header>
+
+  <!-- Config panel -->
+  <div class="config-panel" id="config-panel">
+    <h2>Configuración de imágenes</h2>
+
+    <div class="config-section">
+      <label>Foto de Darth Vader (la que aparece al destapar su casilla)</label>
+      <div class="photo-slots">
+        <div class="photo-slot vader-slot" id="slot-vader">
+          <input type="file" accept="image/*" id="input-vader" />
+          <span class="slot-plus">+</span>
+          <span class="slot-label">Darth Vader</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <label>Fotos premiadas "YO" — sube hasta 10 imágenes distintas</label>
+      <p>Se asignarán al azar entre las cartas ganadoras. Si no subes ninguna, se mostrará texto.</p>
+      <div class="photo-slots" id="yo-slots"></div>
+    </div>
+
+    <div class="config-actions">
+      <button class="btn" id="btn-apply">✓ Aplicar y jugar</button>
+    </div>
+  </div>
+
+  <div class="score-bar" id="score-bar"></div>
+  <div class="groups" id="groups"></div>
+
+</main>
+
+<script>
+  // ── Configuración del tablero ──────────────────────────────────────
+  const GROUPS = 6;
+  const ROWS   = 7;
+  const COLS   = 10;
+
+  // Darth Vaders por fila (fila 0 = arriba, fila 6 = abajo)
+  // Fila 0 → 4 DV | Filas 1-2 → 6 DV | Filas 3-4 → 4 DV | Filas 5-6 → 2 DV
+  const VADER_PER_ROW = [4, 6, 6, 4, 4, 2, 2];
+
+  // ── Estado de imágenes ─────────────────────────────────────────────
+  let vaderSrc = null;     // dataURL foto Darth Vader
+  let yoSrcs   = [];       // hasta 10 dataURLs fotos YO
+
+  // ── Estado del juego ───────────────────────────────────────────────
+  let gameState = [];
+
+  // ── Referencias DOM ────────────────────────────────────────────────
+  const groupsEl     = document.getElementById("groups");
+  const scoreBarEl   = document.getElementById("score-bar");
+  const configPanel  = document.getElementById("config-panel");
+  const btnConfig    = document.getElementById("btn-config");
+  const btnApply     = document.getElementById("btn-apply");
+  const resetBtn     = document.getElementById("reset");
+  const vaderOverlay = document.getElementById("vader-overlay");
+  const vaderOvImg   = document.getElementById("vader-overlay-img");
+  const vaderClose   = document.getElementById("vader-close");
+
+  // ── Crear slots YO ─────────────────────────────────────────────────
+  const yoSlotsEl = document.getElementById("yo-slots");
+  for (let i = 0; i < 10; i++) {
+    const slot = document.createElement("div");
+    slot.className = "photo-slot";
+    slot.id = `slot-yo-${i}`;
+    slot.innerHTML = `
+      <input type="file" accept="image/*" data-idx="${i}" class="yo-input" />
+      <span class="slot-plus">+</span>
+      <span class="slot-label">Foto ${i + 1}</span>`;
+    yoSlotsEl.appendChild(slot);
+  }
+
+  // ── Cargar imagen helper ───────────────────────────────────────────
+  function loadImageFile(input, onLoad) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => onLoad(e.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  function applyImageToSlot(slotEl, src) {
+    let img = slotEl.querySelector("img");
+    if (!img) { img = document.createElement("img"); slotEl.appendChild(img); }
+    img.src = src;
+    slotEl.classList.add("has-image");
+    const plus = slotEl.querySelector(".slot-plus");
+    if (plus) plus.style.display = "none";
+  }
+
+  // Vader input
+  document.getElementById("input-vader").addEventListener("change", function() {
+    loadImageFile(this, src => {
+      vaderSrc = src;
+      applyImageToSlot(document.getElementById("slot-vader"), src);
+    });
+  });
+
+  // YO inputs
+  document.querySelectorAll(".yo-input").forEach(input => {
+    input.addEventListener("change", function() {
+      const idx = +this.dataset.idx;
+      loadImageFile(this, src => {
+        if (yoSrcs.length <= idx) yoSrcs.length = idx + 1;
+        yoSrcs[idx] = src;
+        applyImageToSlot(document.getElementById(`slot-yo-${idx}`), src);
+      });
+    });
+  });
+
+  // ── Toggle config panel ────────────────────────────────────────────
+  btnConfig.addEventListener("click", () => {
+    const hidden = configPanel.style.display === "none";
+    configPanel.style.display = hidden ? "flex" : "none";
+  });
+
+  btnApply.addEventListener("click", () => {
+    configPanel.style.display = "none";
+    buildBoard();
+  });
+
+  // ── Vader overlay ──────────────────────────────────────────────────
+  vaderClose.addEventListener("click", () => {
+    vaderOverlay.classList.remove("show");
+  });
+
+  function showVaderOverlay() {
+    if (vaderSrc) {
+      vaderOvImg.src = vaderSrc;
+      vaderOvImg.style.display = "block";
+    } else {
+      vaderOvImg.style.display = "none";
+    }
+    vaderOverlay.classList.add("show");
+  }
+
+  // ── Colocar Vader al azar en N posiciones de una fila ──────────────
+  function placeVadersInRow(count) {
+    const positions = new Set();
+    while (positions.size < Math.min(count, COLS)) {
+      positions.add(Math.floor(Math.random() * COLS));
+    }
+    return positions;
+  }
+
+  // ── Construir tablero ──────────────────────────────────────────────
+  function buildBoard() {
+    groupsEl.innerHTML = "";
+    gameState = [];
+    const validYo = yoSrcs.filter(Boolean);
+
+    for (let g = 0; g < GROUPS; g++) {
+      // Generar datos de cada celda
+      // Para cada fila: primero colocamos Vaders, luego YO en posición aleatoria distinta
+      const cells = []; // cells[r][c] = "vader" | "yo" | "empty"
+
+      for (let r = 0; r < ROWS; r++) {
+        const vaderPositions = placeVadersInRow(VADER_PER_ROW[r]);
+        // Posición YO: una por fila, no puede coincidir con Vader
+        let yoCol;
+        do { yoCol = Math.floor(Math.random() * COLS); } while (vaderPositions.has(yoCol));
+
+        const row = [];
+        for (let c = 0; c < COLS; c++) {
+          if (vaderPositions.has(c))  row.push("vader");
+          else if (c === yoCol)       row.push("yo");
+          else                        row.push("empty");
+        }
+        cells.push(row);
+      }
+
+      gameState.push({ total: ROWS * COLS, revealed: 0, yoFound: 0, vaderFound: 0 });
+
+      const section = document.createElement("section");
+      section.className = "group";
+
+      section.innerHTML = `
+        <div class="group-header">
+          <span class="group-title">Grupo ${g + 1}</span>
+          <span class="group-progress" id="prog-${g}">0 / ${ROWS * COLS}</span>
+        </div>`;
+
+      const board = document.createElement("div");
+      board.className = "board";
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const type = cells[r][c];
+          const card = document.createElement("button");
+          card.type = "button";
+          card.className = "card";
+          card.dataset.g    = g;
+          card.dataset.type = type;
+
+          // Elegir imagen YO al azar entre las subidas
+          let yoImgSrc = null;
+          if (type === "yo" && validYo.length > 0) {
+            yoImgSrc = validYo[Math.floor(Math.random() * validYo.length)];
+          }
+
+          let backContent = "";
+          if (type === "vader") {
+            backContent = vaderSrc
+              ? `<img src="${vaderSrc}" alt="Darth Vader" />`
+              : `<span class="vader-label">DARTH<br>VADER</span>`;
+          } else if (type === "yo") {
+            backContent = yoImgSrc
+              ? `<img src="${yoImgSrc}" alt="Premio" />`
+              : `<span style="font-family:'Bebas Neue',sans-serif;font-size:clamp(0.8rem,2vw,1.1rem);letter-spacing:0.2em;color:#fff8e0;">¡YO!</span>`;
+          } else {
+            backContent = `<span class="empty-icon">✕</span>`;
+          }
+
+          card.innerHTML = `
+            <div class="card-inner">
+              <div class="card-face card-front">?</div>
+              <div class="card-face card-back">
+                <div class="reveal-content">${backContent}</div>
+              </div>
+            </div>`;
+
+          card.addEventListener("click", () => flipCard(card));
+          board.appendChild(card);
+        }
+      }
+
+      section.appendChild(board);
+      groupsEl.appendChild(section);
+    }
+
+    renderScoreBar();
+  }
+
+  // ── Voltear carta ──────────────────────────────────────────────────
+  function flipCard(card) {
+    if (card.classList.contains("flipped")) return;
+    card.classList.add("flipped");
+
+    const g    = +card.dataset.g;
+    const type = card.dataset.type;
+    const back = card.querySelector(".card-back");
+
+    if (type === "yo") {
+      back.classList.add("type-yo");
+      gameState[g].yoFound++;
+    } else if (type === "vader") {
+      back.classList.add("type-vader");
+      gameState[g].vaderFound++;
+      showVaderOverlay();
+    } else {
+      back.classList.add("type-empty");
+    }
+
+    gameState[g].revealed++;
+    document.getElementById(`prog-${g}`).textContent =
+      `${gameState[g].revealed} / ${gameState[g].total}`;
+
+    renderScoreBar();
+  }
+
+  // ── Score bar ──────────────────────────────────────────────────────
+  function renderScoreBar() {
+    let total = 0, revealed = 0, yoFound = 0, vaderFound = 0;
+    gameState.forEach(s => {
+      total      += s.total;
+      revealed   += s.revealed;
+      yoFound    += s.yoFound;
+      vaderFound += s.vaderFound;
+    });
+    const hidden = total - revealed;
+    const empty  = revealed - yoFound - vaderFound;
+
+    scoreBarEl.innerHTML = `
+      <span class="score-pill"><span class="dot dot-hidden"></span>${hidden} ocultas</span>
+      <span class="score-pill"><span class="dot dot-yo"></span>${yoFound} premiadas</span>
+      <span class="score-pill"><span class="dot dot-empty"></span>${empty} vacías</span>
+      <span class="score-pill"><span class="dot dot-vader"></span>${vaderFound} Vaders</span>
+    `;
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────
+  resetBtn.addEventListener("click", buildBoard);
+  configPanel.style.display = "flex";  // abierto al inicio para que configuren
+  buildBoard();
+</script>
+</body>
+</html>
