@@ -157,7 +157,7 @@
 
 <script>
   // ── Configuración del tablero ──────────────────────────────────────
-  const GROUPS = 6;
+  const GROUPS = 5;
   const ROWS   = 7;
   const COLS   = 10;
 
@@ -167,16 +167,16 @@
 
   // Distribución exacta de gemas por fila (De arriba [índice 0] a abajo [índice 6])
   const GEMS_PER_ROW = [
-    ["gema10.jpg"],                 // 7ª fila por abajo (arriba del todo)
-    ["gema9.jpg"],                  // 6ª fila por abajo
-    ["gema8.jpg"],                  // 5ª fila por abajo
-    ["gema7.jpg"],                  // 4ª fila por abajo
-    ["gema5.png", "gema6.jpg"],    // 3ª fila por abajo
-    ["gema3.jpg", "gema4.jpg"],    // 2ª fila por abajo
-    ["gema1.jpg", "gema2.png"]     // 1ª fila por abajo (abajo del todo)
+    ["Gema 10.jpg"],                 // 7ª fila por abajo (arriba del todo)
+    ["Gema 9.jpg"],                  // 6ª fila por abajo
+    ["Gema 8.jpg"],                  // 5ª fila por abajo
+    ["Gema 7.jpg"],                  // 4ª fila por abajo
+    ["Gema 5.png", "Gema 6.jpg"],    // 3ª fila por abajo
+    ["Gema 3.jpg", "Gema 4.jpg"],    // 2ª fila por abajo
+    ["Gema 1.jpg", "Gema 2.png"]     // 1ª fila por abajo (abajo del todo)
   ];
 
-  let vaderSrc = "Darthvader.jpg";
+  let vaderSrc = "Darth Vader.jpg";
 
   // ── Estado del juego ───────────────────────────────────────────────
   let gameState = [];
@@ -354,7 +354,23 @@
   }
 
   // ── Init ───────────────────────────────────────────────────────────
-  resetBtn.addEventListener("click", buildBoard);
+  resetBtn.addEventListener("click", () => {
+    if (confirm("¿Estás seguro de que quieres reiniciar? Se perderá todo el progreso.")) {
+      buildBoard();
+    }
+  });
+
+  // ── Confirmar al salir o actualizar ────────────────────────────────
+  window.addEventListener("beforeunload", (e) => {
+    // Si hay cartas reveladas, pedir confirmación
+    let hasProgress = gameState.some(s => s.revealed > 0);
+    if (hasProgress) {
+      e.preventDefault();
+      e.returnValue = "¿Estás seguro de que quieres irte? Perderás tu progreso.";
+      return e.returnValue;
+    }
+  });
+
   buildBoard();
 </script>
 </body>
