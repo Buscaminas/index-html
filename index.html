@@ -180,6 +180,10 @@
 
   // ── Estado del juego ───────────────────────────────────────────────
   let gameState = [];
+  // ── Estado del dado único por grupo (1..15 sin repetir hasta agotar) ──
+  const DICE_MAX = 15;
+  let usedNumbers = new Set();       // números que ya han salido (no disponibles hasta agotar)
+  let groupNumbers = Array(GROUPS).fill(null); // número asignado a cada grupo actualmente
 
   // ── Referencias DOM ────────────────────────────────────────────────
   const groupsEl     = document.getElementById("groups");
@@ -213,10 +217,50 @@
     return positions;
   }
 
+  // ── Lógica del dado único (1..DICE_MAX) ───────────────────────────
+  function drawNumberForGroup(g) {
+    const assigned = new Set(groupNumbers.filter(n => n !== null));
+
+    // construir pool de números disponibles: no usados y no asignados actualmente
+    let pool = [];
+    for (let i = 1; i <= DICE_MAX; i++) {
+      if (!usedNumbers.has(i) && !assigned.has(i)) pool.push(i);
+    }
+
+    // si no hay disponibles y ya se usaron todos, reiniciar usedNumbers (permitir repetir)
+    if (pool.length === 0) {
+      if (usedNumbers.size >= DICE_MAX) {
+        usedNumbers.clear();
+        pool = [];
+        for (let i = 1; i <= DICE_MAX; i++) if (!assigned.has(i)) pool.push(i);
+      } else {
+        return null; // todavía quedan números que no han salido, pero están todos asignados ahora
+      }
+    }
+
+    const idx = Math.floor(Math.random() * pool.length);
+    const chosen = pool[idx];
+
+    // marcar como usado (no disponible hasta que se agoten todos)
+    usedNumbers.add(chosen);
+    groupNumbers[g] = chosen;
+    return chosen;
+  }
+
+  function updateGroupDieUI(g) {
+    const el = document.getElementById(`die-${g}`);
+    if (!el) return;
+    el.textContent = groupNumbers[g] === null ? '—' : String(groupNumbers[g]);
+  }
+
   // ── Construir tablero ──────────────────────────────────────────────
   function buildBoard() {
     groupsEl.innerHTML = "";
     gameState = [];
+    // Asegurar que el array de números por grupo tenga la longitud correcta
+    if (!Array.isArray(groupNumbers) || groupNumbers.length !== GROUPS) {
+      groupNumbers = Array(GROUPS).fill(null);
+    }
 
     for (let g = 0; g < GROUPS; g++) {
       const cells = [];
@@ -261,6 +305,10 @@
         <div class="group-header">
           <span class="group-title">Grupo ${g + 1}</span>
           <span class="group-progress" id="prog-${g}">0 / ${ROWS * COLS}</span>
+          <div style="margin-left:12px; display:flex; gap:.5rem; align-items:center;">
+            <span id="die-${g}" style="min-width:36px; padding:.25rem .6rem; border-radius:8px; background:rgba(255,255,255,0.04); color:#ffd; text-align:center;">—</span>
+            <button class="btn" id="roll-${g}" style="padding:.35rem .6rem; font-size:.8rem;">Tirar</button>
+          </div>
         </div>`;
 
       const board = document.createElement("div");
@@ -301,6 +349,21 @@
 
       section.appendChild(board);
       groupsEl.appendChild(section);
+
+      // Añadir listener al botón de tirar para este grupo
+      const rollBtn = document.getElementById(`roll-${g}`);
+      if (rollBtn) {
+        rollBtn.addEventListener('click', () => {
+          const num = drawNumberForGroup(g);
+          if (num !== null) {
+            updateGroupDieUI(g);
+          } else {
+            alert('No hay números disponibles en este momento.');
+          }
+        });
+      }
+      // Render inicial del dado si ya tenía número asignado
+      updateGroupDieUI(g);
     }
 
     renderScoreBar();
@@ -356,6 +419,9 @@
   // ── Init ───────────────────────────────────────────────────────────
   resetBtn.addEventListener("click", () => {
     if (confirm("¿Estás seguro de que quieres reiniciar? Se perderá todo el progreso.")) {
+      // limpiar estados del dado único
+      usedNumbers.clear();
+      groupNumbers = Array(GROUPS).fill(null);
       buildBoard();
     }
   });
@@ -375,3 +441,4 @@
 </script>
 </body>
 </html>
+
