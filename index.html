@@ -91,10 +91,15 @@
 
     /* ── Groups ── */
     .groups { display: flex; flex-direction: column; gap: 1.75rem; }
-    .group { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 1.25rem 1.25rem 1.5rem; backdrop-filter: blur(2px); }
-    .group-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1rem; }
-    .group-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.12em; color: #ffcc44; }
-    .group-progress { font-size: 0.72rem; color: rgba(255,200,80,0.45); letter-spacing: 0.08em; font-weight: 600; }
+    .group { background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.12); border-radius: 24px; padding: 1.4rem 1.4rem 1.5rem; backdrop-filter: blur(6px); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 20px 60px rgba(0,0,0,0.15); }
+    .group-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.85rem; margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 18px; background: rgba(0,0,0,0.16); border: 1px solid rgba(255,255,255,0.08); }
+    .group-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.45rem; letter-spacing: 0.14em; color: #ffd15b; text-shadow: 0 0 8px rgba(255,205,90,0.35); }
+    .group-progress { font-size: 0.78rem; color: rgba(255,230,160,0.9); letter-spacing: 0.08em; font-weight: 700; background: rgba(255,255,255,0.08); padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); }
+    .group-meta { display: grid; gap: 0.35rem; margin-top: 0.8rem; font-size: 0.8rem; color: rgba(255,235,170,0.92); }
+    .group-meta span { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.75rem; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+    .group-position { color: #fff; font-weight: 700; }
+    .group-summary { color: rgba(255,240,200,0.95); }
+    .group-points { color: rgba(255,220,140,0.95); font-style: italic; }
 
     /* ── Board ── */
     .board { display: grid; grid-template-columns: repeat(10, minmax(0,1fr)); gap: 0.6rem; }
@@ -253,6 +258,32 @@
     el.textContent = groupNumbers[g] === null ? '—' : String(groupNumbers[g]);
   }
 
+  function getRowPoints(row) {
+    const POINTS = [12, 8, 6, 4, 3, 2, 1];
+    return POINTS[row] || 0;
+  }
+
+  function renderGroupSummaries() {
+    const ranking = gameState
+      .map((state, index) => ({ group: index, points: state.points, yoFound: state.yoFound, revealed: state.revealed }))
+      .sort((a, b) => b.points - a.points || b.yoFound - a.yoFound || b.revealed - a.revealed);
+
+    const fullRankText = ranking
+      .map((item, idx) => `${idx + 1}.º Grupo ${item.group + 1} (${item.points} pts)`)
+      .join(" / ");
+
+    ranking.forEach((item, rankIdx) => {
+      const rankEl = document.getElementById(`rank-${item.group}`);
+      if (rankEl) {
+        rankEl.textContent = `Posición actual: ${rankIdx + 1}.º`;
+      }
+      const detailEl = document.getElementById(`detail-${item.group}`);
+      if (detailEl) {
+        detailEl.textContent = `Resumen: ${fullRankText}`;
+      }
+    });
+  }
+
   // ── Construir tablero ──────────────────────────────────────────────
   function buildBoard() {
     groupsEl.innerHTML = "";
@@ -296,7 +327,7 @@
         cells.push(row);
       }
 
-      gameState.push({ total: ROWS * COLS, revealed: 0, yoFound: 0, vaderFound: 0 });
+      gameState.push({ total: ROWS * COLS, revealed: 0, yoFound: 0, vaderFound: 0, points: 0 });
 
       const section = document.createElement("section");
       section.className = "group";
@@ -309,6 +340,11 @@
             <span id="die-${g}" style="min-width:36px; padding:.25rem .6rem; border-radius:8px; background:rgba(255,255,255,0.04); color:#ffd; text-align:center;">—</span>
             <button class="btn" id="roll-${g}" style="padding:.35rem .6rem; font-size:.8rem;">Tirar</button>
           </div>
+        </div>
+        <div class="group-meta">
+          <span class="group-position" id="rank-${g}">Posición actual: —</span>
+          <span class="group-summary" id="detail-${g}">Resumen: Sin datos todavía.</span>
+          <span class="group-points" id="points-${g}">Puntos por fila: abajo 1, siguiente 2, 3, 4, 6, 8, 12</span>
         </div>`;
 
       const board = document.createElement("div");
@@ -324,6 +360,7 @@
           card.className = "card";
           card.dataset.g    = g;
           card.dataset.type = type;
+          card.dataset.row  = r;
 
           let backContent = "";
           if (type === "vader") {
@@ -381,6 +418,8 @@
     if (type === "yo") {
       back.classList.add("type-yo");
       gameState[g].yoFound++;
+      const points = getRowPoints(+card.dataset.row);
+      gameState[g].points += points;
     } else if (type === "vader") {
       back.classList.add("type-vader");
       gameState[g].vaderFound++;
@@ -407,13 +446,17 @@
     });
     const hidden = total - revealed;
     const empty  = revealed - yoFound - vaderFound;
+    const totalPoints = gameState.reduce((acc, s) => acc + s.points, 0);
 
     scoreBarEl.innerHTML = `
       <span class="score-pill"><span class="dot dot-hidden"></span>${hidden} ocultas</span>
       <span class="score-pill"><span class="dot dot-yo"></span>${yoFound} premiadas</span>
       <span class="score-pill"><span class="dot dot-empty"></span>${empty} vacías</span>
       <span class="score-pill"><span class="dot dot-vader"></span>${vaderFound} Vaders</span>
+      <span class="score-pill"><span class="dot dot-yo"></span>${totalPoints} pts</span>
     `;
+
+    renderGroupSummaries();
   }
 
   // ── Init ───────────────────────────────────────────────────────────
